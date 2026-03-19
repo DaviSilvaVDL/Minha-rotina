@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rotina Diária</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf7f2;
+    --surface: #fff;
+    --border: #e8e0d0;
+    --text: #1a1714;
+    --muted: #9e9589;
+    --gold: #b8913a;
+    --gold-soft: rgba(184,145,58,0.25);
+    --done-bg: #f5f2ec;
+    --done-text: #b0a898;
+    --shadow: 0 2px 20px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    min-height: 100vh;
+    padding: 2.5rem 1rem 5rem;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b8913a' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  .container { max-width: 560px; margin: 0 auto; position: relative; z-index: 1; }
+
+  header { text-align: center; margin-bottom: 2.5rem; }
+
+  .header-label {
+    font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 0.5rem;
+  }
+
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.2rem, 7vw, 3.2rem);
+    font-weight: 700; color: var(--text); line-height: 1.1;
+  }
+
+  #date-display { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; letter-spacing: 0.08em; }
+
+  /* Progresso */
+  .progress-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1rem 1.4rem;
+    margin-bottom: 1.8rem; box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 1rem;
+  }
+
+  .progress-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem; font-weight: 700; color: var(--gold); min-width: 52px;
+  }
+
+  .progress-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 10px; overflow: hidden; }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #d4a853);
+    border-radius: 10px; transition: width 0.4s ease;
+  }
+
+  .progress-label { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+
+  /* Seção */
+  .section { margin-bottom: 1.6rem; }
+
+  .section-label {
+    font-size: 0.68rem; font-weight: 500;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold); padding: 0 0.2rem; margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--gold-soft); }
+
+  /* Item */
+  .item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 0.6rem;
+    display: flex; align-items: flex-start; gap: 0.9rem;
+    cursor: pointer; transition: all 0.25s ease;
+    box-shadow: var(--shadow); user-select: none;
+    position: relative; overflow: hidden;
+  }
+
+  .item::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--gold); opacity: 0;
+    transition: opacity 0.25s; border-radius: 3px 0 0 3px;
+  }
+
+  .item:hover { border-color: var(--gold-soft); transform: translateY(-1px); box-shadow: 0 4px 24px rgba(0,0,0,0.09); }
+  .item:active { transform: scale(0.99); }
+  .item.done { background: var(--done-bg); border-color: var(--border); box-shadow: none; }
+  .item.done::before { opacity: 1; }
+
+  .checkbox {
+    width: 22px; height: 22px; border-radius: 6px;
+    border: 2px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; margin-top: 1px; background: var(--surface);
+  }
+
+  .item.done .checkbox { background: var(--gold); border-color: var(--gold); }
+  .checkbox svg { display: none; }
+  .item.done .checkbox svg { display: block; }
+
+  .item-content { flex: 1; min-width: 0; }
+
+  .item-title {
+    font-size: 0.95rem; font-weight: 500;
+    color: var(--text); line-height: 1.4; transition: color 0.2s;
+  }
+
+  .item.done .item-title {
+    color: var(--done-text);
+    text-decoration: line-through;
+    text-decoration-color: var(--gold-soft);
+  }
+
+  .item-desc { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; line-height: 1.4; }
+  .item.done .item-desc { color: #c5bfb5; }
+
+  .item-time {
+    font-size: 0.72rem; color: var(--gold); font-weight: 500;
+    letter-spacing: 0.04em; white-space: nowrap;
+    margin-top: 3px; flex-shrink: 0;
+    opacity: 0; transition: opacity 0.3s;
+  }
+
+  .item.done .item-time { opacity: 1; }
+
+  .footer { text-align: center; margin-top: 2rem; }
+
+  .reset-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); font-family: 'Jost', sans-serif;
+    font-size: 0.78rem; padding: 0.55rem 1.5rem;
+    border-radius: 8px; cursor: pointer;
+    letter-spacing: 0.06em; transition: all 0.2s;
+  }
+
+  .reset-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  @keyframes pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  .item.just-done { animation: pop 0.3s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .item { animation: fadeUp 0.35s ease both; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="header-label">✦ Rotina com propósito</div>
+    <h1>Meu Dia</h1>
+    <div id="date-display"></div>
+  </header>
+
+  <div class="progress-wrap">
+    <div class="progress-text" id="prog-text">0/8</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="prog-bar" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="prog-label">Vamos começar 🌅</div>
+  </div>
+
+  <!-- AO ACORDAR -->
+  <div class="section">
+    <div class="section-label">🌅 Ao acordar</div>
+
+    <div class="item" id="item-0" onclick="toggle(0)">
+      <div class="checkbox"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="item-content">
+        <div class="item-title">🙏 Ajoelhar e colocar o dia nas mãos de Deus</div>
+        <div class="item-desc">Agradecer por mais um dia, pedir proteção e orar</div>
+      </div>
+      <div class="item-time" id="time-0"></div>
+    </div>
+
+    <div class="item" id="item-1" onclick="toggle(1)">
+      <div class="checkbox"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="item-content">
+        <div class="item-title">🛏 Arrumar a cama</div>
+        <div class="item-desc">Dobrar o lençol, deixar tudo organizado</div>
+      </div>
+      <div class="item-time" id="time-1"></div>
+    </div>
+
+    <div class="item" id="item-2" onclick="toggle(2)">
+      <div class="checkbox"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="item-content">
+        <div class="item-title">📖 Ler pelo menos um capítulo da Bíblia</div>
+        <div class="item-desc">Nutrir a mente e o espírito com a Palavra</div>
+      </div>
+      <div class="item-time" id="time-2"></div>
+    </div>
+
+    <div class="item" id="item-3" onclick="toggle(3)">
+      <div class="checkbox"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="item-content">
+        <div class="item-title">🍞 Comprar o pão</div>
+        <div class="item-desc">Sair para buscar o pão fresquinho do dia</div>
+      </div>
+      <div class="item-time" id="time-3"></div>
+    </div>
+
+    <div class="item" id="item-4" onclick="toggle(4)">
+      <div class="checkbox"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="item-content">
+        <div class="item-title">🥪 Preparar o lanche da escola dos filhos</div>
+        <div class="item-desc">Montar e embalar o lanche antes de saírem</div>
+      </div>
+      <div class="item-time" id="time-4"></div>
+    </div>
+  </div>
+
+  <!-- AO SAIR -->
+  <div class="section">
+    <div class="section-label">🚪 Ao sair de casa</div>
+
+    <div class="item" id="item-5" onclick="toggle(5)">
+      <div class="checkbox"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="item-content">
+        <div class="item-title">🛡️ Orar pedindo proteção ao sair</div>
+        <div class="item-desc">Pedir a Deus proteção sobre a família e a residência ao deixar o lar</div>
+      </div>
+      <div class="item-time" id="time-5"></div>
+    </div>
+  </div>
+
+  <!-- INTERVALO DO TRABALHO -->
+  <div class="section">
+    <div class="section-label">☕ Intervalo do trabalho</div>
+
+    <div class="item" id="item-6" onclick="toggle(6)">
+      <div class="checkbox"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="item-content">
+        <div class="item-title">📖 Ler mais um ou dois versículos da Bíblia</div>
+        <div class="item-desc">Aproveitar o intervalo para nutrir o espírito com a Palavra</div>
+      </div>
+      <div class="item-time" id="time-6"></div>
+    </div>
+  </div>
+
+  <!-- FIM DO TRABALHO -->
+  <div class="section">
+    <div class="section-label">🌆 Ao final do trabalho</div>
+
+    <div class="item" id="item-7" onclick="toggle(7)">
+      <div class="checkbox"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="item-content">
+        <div class="item-title">🙌 Agradecer a Deus pelo dia concluído</div>
+        <div class="item-desc">Orar com gratidão por ter terminado o dia protegido e retornar em paz para casa</div>
+      </div>
+      <div class="item-time" id="time-7"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="reset-btn" onclick="resetAll()">↺ Resetar o dia</button>
+  </div>
+
+</div>
+
+<script>
+  const TOTAL = 8;
+  const KEY = 'rotina_' + new Date().toISOString().slice(0,10);
+
+  const today = new Date();
+  document.getElementById('date-display').textContent =
+    today.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  let state = JSON.parse(localStorage.getItem(KEY) || 'null') || Array(TOTAL).fill(null).map(() => ({ done: false, time: '' }));
+
+  function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+  function nowTime() {
+    return new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function toggle(i) {
+    state[i].done = !state[i].done;
+    state[i].time = state[i].done ? nowTime() : '';
+    save(); render(i); updateProgress();
+  }
+
+  function render(i) {
+    const item = document.getElementById('item-' + i);
+    const timeEl = document.getElementById('time-' + i);
+    if (state[i].done) {
+      item.classList.add('done', 'just-done');
+      timeEl.textContent = '✓ ' + state[i].time;
+      setTimeout(() => item.classList.remove('just-done'), 400);
+    } else {
+      item.classList.remove('done');
+      timeEl.textContent = '';
+    }
+  }
+
+  const labels = [
+    'Vamos começar 🌅','Bom começo! 💪','Indo bem! ✨',
+    'Ótimo ritmo! 🔥','Metade feita! ⚡','Quase lá... 🏃',
+    'Só mais dois! 💫','Último! 🏁','Dia abençoado! 🙌'
+  ];
+
+  function updateProgress() {
+    const done = state.filter(s => s.done).length;
+    document.getElementById('prog-text').textContent = done + '/' + TOTAL;
+    document.getElementById('prog-bar').style.width = Math.round((done / TOTAL) * 100) + '%';
+    document.getElementById('prog-label').textContent = labels[done] || '';
+  }
+
+  function resetAll() {
+    if (!confirm('Resetar todos os itens de hoje?')) return;
+    state = Array(TOTAL).fill(null).map(() => ({ done: false, time: '' }));
+    save();
+    for (let i = 0; i < TOTAL; i++) render(i);
+    updateProgress();
+  }
+
+  for (let i = 0; i < TOTAL; i++) render(i);
+  updateProgress();
+</script>
+</body>
+</html>
